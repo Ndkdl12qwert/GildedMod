@@ -1,0 +1,15 @@
+{
+  "type": "minecraft:smithing_transform",
+  "template": {
+    "item": "blackgoldmod:god_blackgold_upgrade_template"
+  },
+  "base": {
+    "item": "minecraft:netherite_boots"
+  },
+  "addition": {
+    "item": "blackgoldmod:blackgold_ingot"
+  },
+  "result": {
+    "item": "blackgoldmod:blackgold_boots"
+  }
+}

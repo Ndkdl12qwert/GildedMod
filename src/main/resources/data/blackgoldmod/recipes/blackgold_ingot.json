@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "NNN",
+    "NGN",
+    "NNN"
+  ],
+  "key": {
+    "G": {
+      "item": "minecraft:gold_block"
+    },
+    "N": {
+      "item": "blackgoldmod:blackgold_nugget"
+    }
+  },
+  "result": {
+    "item": "blackgoldmod:blackgold_ingot",
+    "count": 1
+  }
+}

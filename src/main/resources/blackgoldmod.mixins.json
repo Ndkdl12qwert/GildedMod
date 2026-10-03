@@ -1,0 +1,23 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "com.example.examplemod.mixin",
+  "compatibilityLevel": "JAVA_17",
+  "refmap": "blackgoldmod.refmap.json",
+  "mixins": [
+    "LiuArmorMixin",
+    "LiuArmorRemoveMixin",
+    "LiuArmorAttackMixin",
+    "LiuUntargetableMixin",
+    "LivingEntityInvoker",
+    "LivingEntityHealthAccessor",
+    "BlackGoldSwordMixin"
+  ],
+  "client": [
+    "LiuClientAttackMixin",
+    "GuiGraphicsMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

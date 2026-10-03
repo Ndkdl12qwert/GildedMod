@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "blackgoldmod:item/god_blackgold_upgrade_template"
+  }
+}

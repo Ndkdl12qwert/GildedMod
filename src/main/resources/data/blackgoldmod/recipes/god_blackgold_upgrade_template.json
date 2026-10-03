@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "BBB",
+    "BTB",
+    "BBB"
+  ],
+  "key": {
+    "B": {
+      "item": "blackgoldmod:blackgold_ingot"
+    },
+    "T": {
+      "item": "minecraft:netherite_upgrade_smithing_template"
+    }
+  },
+  "result": {
+    "item": "blackgoldmod:god_blackgold_upgrade_template",
+    "count": 1
+  }
+}
