@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "###",
+    "###",
+    "###"
+  ],
+  "key": {
+    "#": {
+      "item": "gildedmod:compressed_netherite_9"
+    }
+  },
+  "result": {
+    "item": "gildedmod:compressed_netherite_final"
+  }
+}

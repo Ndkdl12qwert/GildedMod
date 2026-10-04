@@ -40,7 +40,7 @@ minecraft {
             property 'mixin.env.refMapRemappingFile', "${projectDir}/build/createSrgToMcp/output.srg"
             jvmArgs '--add-modules', 'jdk.attach'
             jvmArgs '--add-exports', 'jdk.attach/sun.tools.attach=ALL-UNNAMED'
-            jvmArgs "-javaagent:${projectDir}/build/libs/blackgoldmod-1.0-agent.jar"
+            jvmArgs "-javaagent:${projectDir}/build/libs/${mod_id}-${mod_version}-agent.jar"
         }
 
         server {
@@ -108,11 +108,11 @@ tasks.register('agentJar', Jar) {
     archiveClassifier = 'agent'
     from sourceSets.main.output
     exclude 'META-INF/mods.toml'
-    exclude 'blackgoldmod.mixins.json'
+    exclude 'gildedmod.mixins.json'
     manifest {
         attributes([
-                'Premain-Class'           : 'com.example.examplemod.agent.LiuAgent',
-                'Agent-Class'             : 'com.example.examplemod.agent.LiuAgent',
+                'Premain-Class'           : 'com.gildedmod.agent.LiuAgent',
+                'Agent-Class'             : 'com.gildedmod.agent.LiuAgent',
                 'Can-Retransform-Classes' : 'true'
         ])
     }
@@ -136,6 +136,6 @@ tasks.withType(JavaCompile).configureEach {
 }
 
 mixin {
-    add sourceSets.main, 'blackgoldmod.refmap.json'
-    config 'blackgoldmod.mixins.json'
+    add sourceSets.main, 'gildedmod.refmap.json'
+    config 'gildedmod.mixins.json'
 }

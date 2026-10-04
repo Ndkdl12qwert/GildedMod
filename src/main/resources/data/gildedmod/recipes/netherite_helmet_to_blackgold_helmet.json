@@ -1,0 +1,15 @@
+{
+  "type": "minecraft:smithing_transform",
+  "template": {
+    "item": "gildedmod:god_blackgold_upgrade_template"
+  },
+  "base": {
+    "item": "minecraft:netherite_helmet"
+  },
+  "addition": {
+    "item": "gildedmod:blackgold_ingot"
+  },
+  "result": {
+    "item": "gildedmod:blackgold_helmet"
+  }
+}

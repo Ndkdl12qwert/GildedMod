@@ -1,0 +1,25 @@
+﻿{
+  "itemGroup.gildedmod.godsword_tab": "GODSWORD · Divine Authority",
+  "item.gildedmod.blackgold_sword": "GODSWORD · Fallen",
+  "item.gildedmod.blackgold_pickaxe": "GODPICKAXE · Mountainbreaker",
+  "item.gildedmod.blackgold_axe": "GODAXE · Splitting all things",
+  "item.gildedmod.blackgold_helmet": "GODHELMET · Mind of God",
+  "item.gildedmod.blackgold_chestplate": "GODCHESTPLATE · Soul of God",
+  "item.gildedmod.blackgold_leggings": "GODLEGGINGS · Grace of God",
+  "item.gildedmod.blackgold_boots": "GODBOOTS · Stride of God",
+  "item.gildedmod.blackgold_nugget": "Blackgold Nugget",
+  "item.gildedmod.blackgold_ingot": "Blackgold Ingot",
+  "item.gildedmod.god_blackgold_upgrade_template": "God Blackgold Upgrade Template",
+  "creativetab.gildedmod": "GODSWORD · Divine Authority",
+
+  "block.gildedmod.compressed_netherite_1": "Compressed Netherite Block I",
+  "block.gildedmod.compressed_netherite_2": "Compressed Netherite Block II",
+  "block.gildedmod.compressed_netherite_3": "Compressed Netherite Block III",
+  "block.gildedmod.compressed_netherite_4": "Compressed Netherite Block IV",
+  "block.gildedmod.compressed_netherite_5": "Compressed Netherite Block V",
+  "block.gildedmod.compressed_netherite_6": "Compressed Netherite Block VI",
+  "block.gildedmod.compressed_netherite_7": "Compressed Netherite Block VII",
+  "block.gildedmod.compressed_netherite_8": "Compressed Netherite Block VIII",
+  "block.gildedmod.compressed_netherite_9": "Compressed Netherite Block IX",
+  "block.gildedmod.compressed_netherite_final": "Ultimate Compressed Netherite Block"
+}
