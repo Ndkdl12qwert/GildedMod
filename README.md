@@ -121,7 +121,6 @@
 GildedMod-2.0.jar
 liu_jvmti.dll
 liu_armor_core.dll
-liu_core.dll
 
 **2. 把以下文件放入任意位置（比如 `.minecraft/`）：**
 
