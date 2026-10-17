@@ -134,7 +134,7 @@ gildedmod-2.0-agent.jar
 -agentpath:路径\liu_jvmti.dll 
 -Dliu.jvmti.path=路径\liu_jvmti.dll
 
-> 重要提醒：如果您使用PCL2启动器游玩，在某些版本可能参数无法正常传递给JVM，所以在您的PCL有此情况下，推荐导出Bat脚本并修改后启动
+> 重要提醒：JVM 参数中，-D...=True 和 -javaagent: 之间必须有一个空格。如果写成 -Dfml.ignorePatchDiscrepancies=True-javaagent:...，JVM 会把 -javaagent 当成前一个 -D 参数值的一部分，导致 Agent 静默不加载，且启动器日志里参数看起来是“传了”的，很难排查。
 
 ---
 
