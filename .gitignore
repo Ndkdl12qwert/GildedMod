@@ -65,3 +65,9 @@ LICENSE.txt
 README.txt
 changelog.txt
 add-license-header.ps1
+
+# --- 本地构建/备份产物 ---
+dist/
+native-backup/
+*.bak
+.vscode/
