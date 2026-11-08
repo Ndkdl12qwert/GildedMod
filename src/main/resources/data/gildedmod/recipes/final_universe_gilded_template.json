@@ -1,0 +1,14 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "ASA",
+    "SUS",
+    "ASA"
+  ],
+  "key": {
+    "A": { "item": "gildedmod:gilded_ingot" },
+    "S": { "item": "gildedmod:hubble_volume" },
+    "U": { "item": "gildedmod:unioxing" }
+  },
+  "result": { "item": "gildedmod:final_universe_gilded_template", "count": 1 }
+}

@@ -69,9 +69,11 @@ public class LiuAgentBus {
             return;
         }
         try {
-            System.load(path);
+            java.io.File f = new java.io.File(path);
+            String absPath = f.getAbsolutePath();
+            System.load(absPath);
             jvmtiLoaded = true;
-            System.out.println("[LIU-BUS] JVMTI DLL loaded: " + path);
+            System.out.println("[LIU-BUS] JVMTI DLL loaded: " + absPath);
         } catch (UnsatisfiedLinkError e) {
             jvmtiLoaded = true;
             System.out.println("[LIU-BUS] JVMTI DLL already loaded (via -agentpath)");

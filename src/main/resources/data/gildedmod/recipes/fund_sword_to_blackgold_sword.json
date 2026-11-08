@@ -1,0 +1,15 @@
+{
+  "type": "minecraft:smithing_transform",
+  "template": {
+    "item": "gildedmod:final_universe_gilded_template"
+  },
+  "base": {
+    "item": "gildedmod:fund_sword"
+  },
+  "addition": {
+    "item": "gildedmod:gilded_ingot"
+  },
+  "result": {
+    "item": "gildedmod:blackgold_sword"
+  }
+}

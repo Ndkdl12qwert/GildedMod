@@ -1,0 +1,32 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "ANB",
+    "NGN",
+    "CND"
+  ],
+  "key": {
+    "G": {
+      "item": "gildedmod:god_blackgold_upgrade_template"
+    },
+    "N": {
+      "item": "gildedmod:blackgold_block"
+    },
+    "A": {
+      "item": "gildedmod:star"
+    },
+    "B": {
+      "item": "gildedmod:black_hole"
+    },
+    "C": {
+      "item": "gildedmod:galaxy"
+    },
+    "D": {
+      "item": "gildedmod:hubble_volume"
+    }
+  },
+  "result": {
+    "item": "gildedmod:gilded_ingot",
+    "count": 1
+  }
+}

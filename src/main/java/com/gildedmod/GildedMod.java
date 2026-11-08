@@ -19,13 +19,12 @@ package com.gildedmod;
 
 import com.gildedmod.agent.LiuAgentLoader;
 import com.gildedmod.agent.bus.LiuAgentBus;
+import com.gildedmod.client.GildedIngotItem;
 import com.mojang.logging.LogUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.ArmorItem;
+import net.minecraft.world.item.*;
 import net.minecraftforge.event.entity.living.LivingHurtEvent;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.TickEvent;
@@ -43,6 +42,9 @@ import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.SoundType;
+import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.item.BlockItem;
 
 @Mod(GildedMod.MODID)
@@ -56,6 +58,11 @@ public class GildedMod {
     public static final RegistryObject<Item> BLACKGOLD_SWORD = ITEMS.register(
             "blackgold_sword",
             BlackGoldSword::new
+    );
+
+    public static final RegistryObject<Item> FUND_SWORD = ITEMS.register(
+            "fund_sword",
+            FundSword::new
     );
 
     public static final RegistryObject<Item> BLACKGOLD_PICKAXE = ITEMS.register(
@@ -98,9 +105,56 @@ public class GildedMod {
             () -> new Item(new Item.Properties())
     );
 
+    public static final RegistryObject<Item> GILDED_INGOT = ITEMS.register(
+            "gilded_ingot",
+            GildedIngotItem::new
+    );
+
     public static final RegistryObject<Item> GOD_BLACKGOLD_UPGRADE_TEMPLATE = ITEMS.register(
             "god_blackgold_upgrade_template",
             () -> new Item(new Item.Properties())
+    );
+
+    public static final RegistryObject<Item> FINAL_UNIVERSE_GILDED_TEMPLATE = ITEMS.register(
+            "final_universe_gilded_template",
+            () -> new Item(new Item.Properties().rarity(Rarity.EPIC))
+    );
+
+    public static final RegistryObject<Item> UNIOXING = ITEMS.register(
+            "unioxing",
+            () -> new Item(new Item.Properties()
+                    .stacksTo(64)
+                    .rarity(Rarity.EPIC)
+                    .fireResistant())
+    );
+
+    public static final RegistryObject<Item> STAR = ITEMS.register(
+            "star",
+            () -> new Item(new Item.Properties()
+                    .stacksTo(64)
+                    .rarity(Rarity.EPIC)
+                    .fireResistant())
+    );
+
+    public static final RegistryObject<Item> GALAXY = ITEMS.register(
+            "galaxy",
+            () -> new Item(new Item.Properties()
+                    .stacksTo(64)
+                    .rarity(Rarity.EPIC)
+                    .fireResistant())
+    );
+
+    public static final RegistryObject<Item> BLACK_HOLE = ITEMS.register(
+            "black_hole",
+            () -> new Item(new Item.Properties()
+                    .stacksTo(64)
+                    .rarity(Rarity.EPIC)
+                    .fireResistant())
+    );
+
+    public static final RegistryObject<Item> HUBBLE_VOLUME = ITEMS.register(
+            "hubble_volume",
+            HubbleVolumeItem::new
     );
 
     // ===== 压缩下界合金块 1~9 层 + final =====
@@ -227,6 +281,19 @@ public class GildedMod {
             () -> new BlockItem(COMPRESSED_NETHERITE_FINAL.get(), new Item.Properties().fireResistant())
     );
 
+    public static final RegistryObject<Block> BLACKGOLD_BLOCK = BLOCKS.register(
+            "blackgold_block",
+            () -> new Block(BlockBehaviour.Properties.of()
+                    .strength(121500.0F, 2916000.0F)
+                    .requiresCorrectToolForDrops()
+                    .sound(SoundType.METAL))
+    );
+
+    public static final RegistryObject<Item> BLACKGOLD_BLOCK_ITEM = ITEMS.register(
+            "blackgold_block",
+            () -> new BlockItem(BLACKGOLD_BLOCK.get(), new Item.Properties())
+    );
+
     public static final DeferredRegister<RecipeType<?>> RECIPE_TYPES =
             DeferredRegister.create(ForgeRegistries.RECIPE_TYPES, MODID);
 
@@ -241,10 +308,28 @@ public class GildedMod {
             RECIPE_SERIALIZERS.register("blackgold_blasting",
                     BlackGoldBlastingRecipeSerializer::new);
 
-    public GildedMod() {
-        System.out.println("GildedEX-Mod | Author: Onicox | License: GPL-3.0-or-later");
+    /**
+     * 用<b>构造器注入</b>拿事件总线：Forge 47.x 起 {@code FMLJavaModLoadingContext.get()} 已弃用
+     * （标记 since 1.21.1 / forRemoval），改成让 Forge 把 context 直接传进构造器即可。
+     * <p>注入是 Forge 内部机制（{@code FMLModContainer.constructMod} 会先找
+     * {@code 构造器(FMLJavaModLoadingContext)}，找不到才退回无参构造），所以这个签名必须精确写
+     * {@code FMLJavaModLoadingContext} 这一个参数。
+     */
+    public GildedMod(FMLJavaModLoadingContext context) {
+        System.out.println("GildedEX-Mod | Author: Onicox | ...");
+
+        // 注意：JVMTI 的 dll 现在【内嵌在 gilded_hook.dll 里】了 ——
+        // 由启动器在 JVM 启动前解压到 %LOCALAPPDATA%\GildedEX\native\，
+        // 再把 -agentpath 指过去。所以 mods\ 里不需要放这个 dll。
+        // （曾短暂地在 Java 侧做过"把 jar 里的 dll 补到 mods\"，已废弃：
+        //   那样只能下次启动生效，而且又回到"要往 mods 里塞文件"的老路。）
+        //
+        // 文件名：GildedNativeKernel.dll（CMake target 同名，2026-10-31 从 liu_jvmti.dll 改名）
 
         String jvmtiPath = System.getProperty("liu.jvmti.path");
+        if (jvmtiPath == null || jvmtiPath.isBlank()) {
+            jvmtiPath = "mods/GildedNativeKernel.dll";
+        }
         LiuAgentBus.loadJvmtiDll(jvmtiPath);
 
         try {
@@ -263,12 +348,14 @@ public class GildedMod {
         LOGGER.info("§6§l╚════════════════════════════════╝");
         LOGGER.info("");
 
-        IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
+        IEventBus modEventBus = context.getModEventBus();
         ITEMS.register(modEventBus);
         BLOCKS.register(modEventBus);
         RECIPE_SERIALIZERS.register(modEventBus);
         RECIPE_TYPES.register(modEventBus);
         ModCreativeTab.register(modEventBus);
+        // 网络通道：把客户端的 Alt 按住状态同步给服务端（护剑逻辑要用）
+        com.gildedmod.net.AltSync.register();
         MinecraftForge.EVENT_BUS.register(this);
     }
 
@@ -280,6 +367,30 @@ public class GildedMod {
             }
         }
         return pieces >= 4;
+    }
+
+    /**
+     * 主手或副手拿着任意鎏金/神剑。
+     *
+     * <p>用于「纯代码级伤害拦截」：拿着剑就免伤，不再靠常驻药水效果
+     * （那套已经因为卡顿删掉了 —— 每次 addEffect 都要属性重算 + 同步包）。
+     */
+    public static boolean holdsBlackGoldSword(Player player) {
+        if (player == null) {
+            return false;
+        }
+        return player.getMainHandItem().getItem() instanceof BlackGoldSword
+                || player.getOffhandItem().getItem() instanceof BlackGoldSword;
+    }
+
+    /**
+     * 统一的"受保护"判定 —— 全套鎏金盔甲，或手里拿着剑。
+     *
+     * <p>所有伤害/移除守卫都应该用这个，而不是直接问 {@code hasFullBlackGoldArmor}，
+     * 否则会出现"穿甲免伤、拿剑不免伤"的不一致 ✓
+     */
+    public static boolean isProtected(Player player) {
+        return hasFullBlackGoldArmor(player) || holdsBlackGoldSword(player);
     }
 
     @SubscribeEvent
@@ -301,7 +412,7 @@ public class GildedMod {
 
 
     @SubscribeEvent
-    public static void onClientTick(TickEvent.ClientTickEvent event) {
+    public void onClientTick(TickEvent.ClientTickEvent event) {
         if (event.phase != TickEvent.Phase.END) return;
         if (Minecraft.getInstance().player == null) return;
 
@@ -312,16 +423,17 @@ public class GildedMod {
                 player.onUpdateAbilities();
             }
             player.clearFire();
-            player.removeAllEffects();
+            // 不在这里动效果：效果归属服务端（见 onPlayerTick / LiuArmorTicker）
         }
     }
 
     @SubscribeEvent
-    public static void onPlayerTick(TickEvent.PlayerTickEvent event) {
+    public void onPlayerTick(TickEvent.PlayerTickEvent event) {
         if (event.phase != TickEvent.Phase.END) return;
         if (event.player.level().isClientSide) return;
 
         Player player = event.player;
+        long t0 = GildedDebug.begin();
 
         if (hasFullBlackGoldArmor(player)) {
             if (!player.getAbilities().mayfly) {
@@ -330,7 +442,8 @@ public class GildedMod {
             }
             // 直接 Java 调用，不走 native
             player.clearFire();
-            player.removeAllEffects();
+            // 只清有害效果 —— removeAllEffects() 会连增益一起删掉
+            LiuArmorCore.clearDebuffs(player);
         } else {
             if (!player.isCreative() && !player.isSpectator()) {
                 if (player.getAbilities().mayfly) {
@@ -339,9 +452,9 @@ public class GildedMod {
                     player.onUpdateAbilities();
                 }
             }
-            // 如果不想让玩家永远无法获得正面效果，建议加个条件
-            // player.removeAllEffects();
         }
+
+        GildedDebug.end("playerTickEvent", t0);
     }
 
     public static boolean hasGodItem(Player player) {

@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "SSS",
+    "SNS",
+    "SSS"
+  ],
+  "key": {
+    "S": {
+      "item": "gildedmod:star"
+    },
+    "N": {
+      "item": "gildedmod:black_hole"
+    }
+  },
+  "result": {
+    "item": "gildedmod:galaxy"
+  }
+}

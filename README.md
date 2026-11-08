@@ -1,29 +1,31 @@
 # GildedMod
 
-> **鎏金神权 · 双 Agent 架构 · 五层技术栈**
-> 注:开源部分大部分由Ai辅助
+> **鎏金神权 · 原生内核 · 六层技术栈**
+> 注：开源部分大部分由 AI 辅助完成
 
-[![License: LGPL v3+](https://img.shields.io/badge/License-LGPLv3+-blue.svg)](https://www.gnu.org/licenses/lgpl-3.0.html)
 [![Minecraft](https://img.shields.io/badge/Minecraft-1.20.1-green.svg)]()
 [![Forge](https://img.shields.io/badge/Forge-47.4.13-orange.svg)]()
 [![Java](https://img.shields.io/badge/Java-17-red.svg)]()
-
-[![Native](https://img.shields.io/badge/Native-DLLs-blueviolet.svg)](https://github.com/Ndkdl12qwert/Gilded-NativeLibrary)
+[![Java License: LGPLv3+](https://img.shields.io/badge/Java%20License-LGPLv3+-blue.svg)](https://www.gnu.org/licenses/lgpl-3.0.html)
+[![Kernel: Proprietary](https://img.shields.io/badge/Kernel-Proprietary%20(closed)-critical.svg)]()
 
 ---
 
 ## 这是什么
 
-**GildedMod** 是一个把 **JVMTI** 和 **Java Agent** 同时用于 Minecraft 的实验性 Mod。
+**GildedMod** 是一个把 **Mixin / Java Agent / JVMTI / JNI / JVM 本体补丁** 串起来用于
+Minecraft 的实验性 Mod。它不是普通的 Mixin Mod —— 它把"控制点"一路下推到 **JVM 内核层**。
 
-它不是一个普通的 Mixin Mod——它是一个**五层技术栈的完整 demo**：
+### 六层技术栈
 
-- **Mixin** — 编译期字节码注入
-- **Java Agent** — 运行时 `retransformClasses`
-- **JVMTI** — JVM 内部观察类加载 / native 绑定
-- **JNI** — 原生直写内存
-- **Forge** — Mod 主体
-
+| 层 | 技术 | 作用 |
+|---|---|---|
+| **6** | **JVM 本体补丁** | 改 `jvm.dll` 导出函数首字节（`JVM_Halt` / `JVM_GC`）|
+| **5** | **JVMTI ClassFileLoadHook** | 比任何 Java 层都早地拿到每个类的原始字节；**Native 全返回** |
+| **4** | **JVMTI / RegisterNatives** | 显式绑定 native 方法、强制提前返回（能力可用时）|
+| **3** | **JNI** | 字段直写、四路移除、GC 安全解析链 |
+| **2** | **Java Agent (ASM)** | 运行时字节码改写 / 攻击方法拦截 |
+| **1** | **Mixin / Forge** | 事件、渲染、免伤守卫、游戏内容 |
 
 ---
 
@@ -33,267 +35,248 @@
 
 | 功能 | 说明 |
 |---|---|
-| **左键** | 一击必杀 —— 穿透一切 Java 层防护 |
+| **左键** | 一击必杀 —— 对**绝大多数实体**有效（四条移除路径同时执行）|
 | **右键** | 神权·天罚 —— 范围秒杀 |
 | **手持** | 自动飞行 |
 | **耐久** | 永不磨损 |
+
+> **诚实说明**：对**主动反制型实体**（例如同装 pig2mod 的 `Pig2`：
+> 它 override 了 `getHealth` / `setRemoved` / `remove`，每 tick 回血并把 `deathTime` 清零），
+> 击杀链会被它逐层抵消。这类实体只能被**压制**（不动、不打、0 血），无法保证消失。
 
 ### 鎏金甲
 
 | 功能 | 说明 |
 |---|---|
-| **全套** | 免疫一切伤害 |
+| **全套** | 免疫一切伤害（四层守卫 + `isInvulnerable` + 每 tick 满血）|
 | **防删除** | 无法被移除 |
 | **防选中** | 无法被准星锁定 |
 
-### 鎏金工具
+### 鎏金工具 / 压缩下界合金块
 
 | 功能 | 说明 |
 |---|---|
-| **镐 / 斧** | 超高挖掘速度 |
-| **范围采集** | 右键范围破坏 |
-
-### 压缩下界合金块
-
-- **1 ~ 9 层 + FINAL**
-- **硬度从 50 到 1500**
-- **抗爆 36000**
+| **镐 / 斧** | 超高挖掘速度 + 右键范围破坏 |
+| **压缩块** | 1 ~ 9 层 + FINAL，硬度 50 → 1500，抗爆 36000 |
 
 ### 自定义 Tooltip
 
-- **完全接管渲染** —— 不是叠加，是替换
-- **鎏金边框** —— 呼吸金光
-- **黑金渐变背景** —— 半透明
+完全接管渲染（替换而非叠加）：鎏金呼吸边框 + 黑金半透明渐变底。
 
 ---
 
-## 技术架构
-- Layer 5 : Forge Mod ← 业务逻辑
-- Layer 4 : Mixin │ ← 编译期字节码
-- Layer 3 : Java Agent (ASM) │ ← 运行时 retransform
-- Layer 2 : JVMTI (C++) │ ← JVM 内部观察(闭源)
-- Layer 1 : JNI (C++) │ ← 原生直写内存(闭源)
+## 原生内核 · GildedNativeKernel
 
-| 层 | 技术 | 作用 |
-|---|---|---|
-| **Mixin** | `@Inject` / `@Accessor` | 客户端 / 服务端字节码 |
-| **Java Agent** | ASM + `retransformClasses` | 运行时改字节码 |
-| **JVMTI** | `ClassFileLoadHook` / `NativeMethodBind` | 观察类加载 + native 绑定 |
-| **JNI** | `SetFloatField` / `SetBooleanField` | 直接写字段 |
-| **Forge** | 事件 / 注册 / 渲染 | Mod 主体 |
+`GildedNativeKernel.dll`（约 **4,150 行有效 C++**）是本项目的核心，
+它在**游戏启动的最早期**介入 JVM。
 
-### 双 Agent 通信
+### 能力
 
-**Java Agent** 和 **JVMTI Agent** 通过 `LiuAgentBus` 通信：
+| 能力 | 说明 |
+|---|---|
+| **ClassFileLoadHook** | 在读取原始字节的最早时刻观察 / 改写任意类 |
+| **Native 全返回** | 让指定类的所有方法直接返回默认值（见 `fullreturn.txt`）|
+| **RegisterNatives** | 显式绑定 native 方法，彻底避免 `UnsatisfiedLinkError` |
+| **JVM 本体补丁** | `JVM_Halt` / `JVM_GC` 首字节改为 `ret`：拦截关服请求、吞掉显式 GC |
+| **血量字段直写** | 沿 `entityData → DataItem → Float.value` 解析链写入，**不缓存地址**，GC 安全 |
+| **四路移除** | `discard()` / 最大伤害 `hurt` / `PlayerList.remove` / 世界实体表 |
+| **GC 安全追踪** | 只持有 `GlobalRef`，每次重新解析，不保存任何裸地址 |
 
-┌─────────────────┐ ┌─────────────────┐
-│ JVMTI Agent     │ │    Java Agent   │
-│ (liu_jvmti.dll) │←→│ (agent.jar)    │
-│       JNI       │ │                 │
-│ ClassFileHook   │ │ LiuTransformer  │
-│ NativeBind      │ │ LiuAgentHook    │
-└─────────────────┘ └─────────────────┘
-          ↑                   ↑
-└─────── LiuAgentBus (静态类) ─────────┘
+### 运行时位置
 
+```
+%LOCALAPPDATA%\GildedEX\native\GildedNativeKernel.dll     ← 游戏实际加载的内核
+%LOCALAPPDATA%\GildedEX\native\GildedArmor.dll            ← 护甲守卫
+%LOCALAPPDATA%\GildedEX\native\gilded_jvmti.log           ← 内核日志（UTF-8）
+```
+
+日志前缀统一为 `[GildedNativeKernel] <部分> <数据>`，例如：
+
+```
+[GildedNativeKernel] [L2] ClassFileLoadHook 安装 ✓
+[GildedNativeKernel] [CP] RegisterNatives 完成：6 个方法已显式绑定 ✓
+[GildedNativeKernel] [KERNEL-JVM] 安装结果：2 个补丁生效（halt=1 gc=1）
+[GildedNativeKernel] [ANNIHILATE] steps=11 (discard=1 hurt=1 playerlist=0 entitymgr=1)
+```
 
 ---
 
-## 安装
+## 安装（两步）
 
 ### 前置
 
-- **Minecraft 1.20.1**
-- **Forge 47.4.13**
-- **JDK 17**
-- **NativeLibrary**：[Gilded-NativeLibrary](https://github.com/Ndkdl12qwert/Gilded-NativeLibrary) 👈 **必看**
+- Minecraft **1.20.1** + Forge **47.4.13**
+- **JDK 17**（启动器里选 Java 17）
 
 ### 步骤
 
-**0.下载两个仓库的文件**
-| 来源 | 下载什么 |
-|---|---|
-| [GildedMod Releases](https://github.com/Ndkdl12qwert/GildedMod/releases) | `blackgoldmod-2.0.jar`<br>`blackgoldmod-2.0-agent.jar` |
-| [Gilded-NativeLibrary Releases](https://github.com/Ndkdl12qwert/Gilded-NativeLibrary/releases) | `liu_jvmti.dll`<br>`liu_armor_core.dll` |
+**1. 把两个 jar 放进 `.minecraft/mods/`**
 
-**1. 把以下文件放入 `.minecraft/mods/`：**
-
-GildedMod-2.0.jar
-liu_jvmti.dll
-liu_armor_core.dll
-
-**2. 把以下文件放入任意位置（比如 `.minecraft/`）：**
-
+```
+gildedmod-2.0.jar
 gildedmod-2.0-agent.jar
+```
 
-**3. 启动器的 JVM 参数加：**
+**2. 用附带启动器启动（二选一）**
 
--javaagent:C:路径\gildedmod-1.0-agent.jar 
--Dliu.agent.path="路径\gildedmod-1.0-agent.jar" 
--agentpath:路径\liu_jvmti.dll 
--Dliu.jvmti.path=路径\liu_jvmti.dll
+| 方式 | 说明 |
+|---|---|
+| **`Launch-GildedKernel.cmd`** ★推荐 | 自动请求管理员 → UTF-8 控制台 → 大页/高优先级 → 注入式启动 |
+| **`GildedLauncher.exe --level2`** | 直接注入 `gilded_hook.dll`（内核 DLL 由 hook 自行解压）|
 
-> 重要提醒：JVM 参数中，-D...=True 和 -javaagent: 之间必须有一个空格。如果写成 -Dfml.ignorePatchDiscrepancies=True-javaagent:...，JVM 会把 -javaagent 当成前一个 -D 参数值的一部分，导致 Agent 静默不加载，且启动器日志里参数看起来是“传了”的，很难排查。
+> **不需要**手动放任何 DLL 到 `mods/`，**不需要** `-javaagent`，
+> 也**不需要**手动配 `-agentpath` —— hook 会把内核解压到 `%LOCALAPPDATA%\GildedEX\native\` 并接管。
+
+如果你坚持用启动器（PCL2 / HMCL）直接启动，请在 JVM 参数里加：
+
+```
+-agentpath:<绝对路径>\GildedNativeKernel.dll
+```
+
+---
+
+## 配置
+
+### `config/gildedmod/kernel.properties`
+
+```properties
+# 周期性自愈间隔（tick）。0 = 关闭（推荐）
+# ⚠ 每次执行会 retransform ~150 个类，会短暂 STW，游戏会卡 0.2~1 秒
+selfheal.interval=0
+
+# 攻击方法拦截：把其它 mod 的"攻击型"方法体替换成 return false
+# 已排除渲染相关类/方法（否则实体会全部不可见）
+block.attacks=false
+
+# 全局伤害否决：只保护"穿 4 件鎏金甲 或 手持鎏金剑"的玩家
+block.all.hurt=true
+
+# JVM 本体补丁（JVM_Halt / JVM_GC 首字节改写）
+kernel.jvm.patch=true
+```
+
+### `config/gildedmod/fullreturn.txt`
+
+一行一个类的内部名（斜杠分隔）。命中的类**所有方法**都会直接返回默认值
+（`<init>` / `<clinit>` 与移除相关方法保留）。
+
+```
+kakiku/pig2mod/entity/Pig2
+```
+
+也支持自动模式：写 `*` 表示"类名含 attack / hurt / damage / combat / kill / weapon 的 mod 类全部全返回"。
+
+> **注意**：对**被 Mixin 注入过的类**使用全返回会与 Mixin 的校验冲突 → 崩溃。
+> 请只对自己确认安全的目标使用。
 
 ---
 
 ## 构建
 
-### 克隆项目
+### 一键（推荐）
 
-```bash
-git clone https://github.com/Ndkdl12qwert/GildedMod.git
-cd GildedMod
-```
-**编译java部分**
-
-```Powershell
-./gradlew clean build agentJar
+```bat
+rebuild.bat
 ```
 
-产物
+依次完成：编译 C++ → 拷贝到运行时目录 → 编译 jar → 部署到 `mods/` →
+重嵌 `gilded_hook.dll` → 校验一致性。
 
-build/libs/
-├── gildedmod-1.0.jar          ← 主 mod
-└── gildedmod-1.0-agent.jar    ← Java Agent
+### 分步
 
-## 依赖
+```powershell
+# C++
+cmake -G Ninja -B build/native-cmake -S src/main/cpp
+cmake --build build/native-cmake -j 4
 
-本 Mod 的 C++ 部分依赖以下运行时库（**MinGW-w64 UCRT64 runtime**）：
-
-| DLL | 大小 | 来源 |
-|---|---|---|
-| `libgcc_s_seh-1.dll` | ~100 KB | MinGW-w64 |
-| `libstdc++-6.dll` | ~2 MB | MinGW-w64 |
-
-**这些 DLL 随 Release 一起发布。** 如果你是从源码编译，需要自己从
-MinGW-w64（UCRT64）的 `bin/` 目录复制。
-
-### 检查依赖是否齐全
-
-**方法 1：看日志**
-
-启动游戏后，在 `logs/latest.log` 里搜 `LIU-JVMTI`：
-
-- **看到 `[LIU-JVMTI] Agent_OnLoad`** —— 依赖齐全 ✅
-- **看不到，且日志里有 `Can't find dependent libraries`** —— 依赖缺失 ❌
-
-**方法 2：用 `objdump` 检查**
-
-```bash
-objdump -p liu_jvmti.dll | grep "DLL Name"
+# Java
+./gradlew clean jar agentJar
 ```
-输出会列出所有依赖。确认这些 DLL 都在 mods/ 目录里：
-DLL Name: libgcc_s_seh-1.dll      ← 必须在 mods/
-DLL Name: libstdc++-6.dll         ← 必须在 mods/
-DLL Name: KERNEL32.dll            ← 系统自带
-DLL Name: api-ms-win-crt-*.dll    ← 系统自带（Windows 10+）
 
-**方法 3：用 Dependencies.exe**
+产物：
 
-下载 Dependencies —— 拖 liu_jvmti.dll
-进去 —— 红色 = 缺失，绿色 = 有。
+```
+build/native-cmake/bin/GildedNativeKernel.dll
+build/native-cmake/bin/GildedArmor.dll
+build/libs/gildedmod-2.0.jar
+build/libs/gildedmod-2.0-agent.jar
+```
 
-**常见错误**
-text
-Error occurred during initialization of VM
-Could not find agent library liu_jvmti.dll in absolute path,
-with error: Can't find dependent libraries
+> C++ 侧已 **静态链接**（`-static -static-libgcc -static-libstdc++`），
+> **不需要**额外分发 `libgcc_s_seh-1.dll` / `libstdc++-6.dll`。
 
-原因：libgcc_s_seh-1.dll 或 libstdc++-6.dll 缺失。
+---
 
-解决：把这两个 DLL 放进 mods/ 目录（和 liu_jvmti.dll 同目录）。
+## 许可与授权
 
-**许可**
+本项目**分两部分授权**。
 
-Copyright (C) 2026 Onicox
+### 1. Java 部分（`gildedmod-2.0.jar` / `gildedmod-2.0-agent.jar`）
 
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+**GNU Lesser General Public License v3.0 or later（LGPLv3+）**
 
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+- ✅ 你可以：使用、学习、修改、再分发
+- ✅ 你可以：在你自己的 mod 中**链接/调用**本 Mod
+- ⚠️ 你必须：修改 Java 部分后**开源**，保留版权声明，继续使用 LGPLv3+
+- ❌ 你不可以：闭源分发修改后的 Java 部分，或违反 Minecraft EULA
 
-You should have received a copy of the GNU General Public License
-along with this program.  If not, see <https://www.gnu.org/licenses/>.
+### 2. 原生内核部分（`GildedNativeKernel.dll` / `GildedArmor.dll`）
 
-本项目采用 GNU General Public License v3.0 or later。
+**专有软件（Proprietary）· 闭源 · 保留所有权利**
 
-- 你可以：使用、学习、修改、分享
+- ✅ **允许**：以二进制形式随你的整合包 / 依赖**原样分发**
+- ✅ **允许**：通过公开的 JNI 入口**调用**本内核（作为依赖使用）
+- ❌ **禁止**：反编译、反汇编、逆向工程、提取算法
+- ❌ **禁止**：修改、打补丁、二次打包、替换内部逻辑
+- ❌ **禁止**：分发被修改过的二进制，或声称其为你自己的作品
+- ❌ **禁止**：售卖本内核或其衍生品
 
-- 你必须：修改后开源、保留版权、同样 GPLv3+
+简而言之：**可以调用，不可以拆开改。**
 
-- 你不可以：闭源分发、售卖 Mod 本体、违反 Minecraft EULA
+内核以**编译后的二进制形式**提供，不附带源码。任何绕过上述限制的行为均视为侵权。
 
-**Java 部分** —— GNU Lesser General Public License v3.0 or later
+### 免责声明
 
-**C++ 部分**（`liu_jvmti.dll` / `liu_core.dll` / `liu_armor_core.dll`）—— **专有闭源**，仅以编译后的二进制形式提供。
-
-### 你可以
-
-- 使用、学习、修改、分享 **Java 部分**
-- 在自己的项目中 **链接**（动态调用）本 mod 的 DLL
-
-### 你必须
-
-- 修改 Java 部分后 **开源**
-- 保留 **版权声明**
-- Java 部分的修改继续 **LGPLv3+**
-
-### 你不可以
-
-- **闭源分发 Java 部分**
-- **违反 Minecraft EULA**
-
-### C++ 部分
-
-C++ 源码 **不开源**。如需合作 / 授权，请联系作者。
-
-**免责声明**
-- 本 Mod 为技术实验，仅用于单机 / 朋友开黑。
-
-- 请勿在公开服务器使用 —— 可能被反作弊记录或封号
-
+- 本项目为**技术实验**，仅用于单机 / 朋友开黑
+- **请勿在公开服务器使用** —— 可能被反作弊记录或封号
 - 请勿用于商业用途 —— 违反 Minecraft EULA
-
 - 作者不对任何后果负责
 
-贡献
-欢迎：
+---
 
-提交 Issue —— 报告 Bug / 建议
+## 贡献
 
-提交 PR —— 改进代码 / 文档
+- 提交 Issue —— 报告 Bug / 建议
+- 提交 PR —— 改进 **Java 部分**或文档
+- 写教程 —— 教别人怎么用
 
-写教程 —— 教别人怎么用
+本项目**不接受金钱赞助**，只接受技术贡献。
 
-本项目不接受金钱赞助 —— 只接受技术贡献。
+## 致谢
 
-致谢
-MinecraftForge — Mod 加载框架
+MinecraftForge · SpongePowered Mixin · ASM (OW2) · MSYS2 / MinGW-w64
 
-SpongePowered Mixin — 字节码注入
+## 版本历史
 
-ASM — 字节码操作
+### v2.0.1 — 2026-11-08
 
-OW2 — ASM 维护
+- **新增原生内核层 `GildedNativeKernel`**：ClassFileLoadHook、RegisterNatives、
+  Native 全返回、JVM 本体补丁（`JVM_Halt` / `JVM_GC`）
+- **新增免伤体系**：四层守卫 + `isInvulnerable` + 每 tick 满血 + 全局伤害否决
+- **新增攻击方法拦截**（已排除渲染相关类与方法）
+- **新增配置文件** `kernel.properties` / `fullreturn.txt`
+- **移除常驻药水效果与仇恨扫描**（修复生存模式明显卡顿）
+- **内核更名**：`GildedJVMTINative.dll` → `GildedNativeKernel.dll`
+- 统一日志前缀 `[GildedNativeKernel]`，控制台 UTF-8
 
-MSYS2 / MinGW-w64 — C++ 编译工具链
+### v2.0 — 2026-10-02
 
-版本历史
-v2.0 — 2026-10-02
-首次公开发布
+- 首次公开发布
+- 双 Agent 架构（Java Agent + JVMTI）
+- 鎏金神权体系
+- 自定义 Tooltip（完全接管渲染）
+- 压缩下界合金块（1~9 层 + FINAL）
 
-双 Agent 架构（Java Agent + JVMTI）
+---
 
-鎏金神权体系
-
-自定义 Tooltip（Level 3 完全接管）
-
-压缩下界合金块（1~9 层 + FINAL）
-
-Made with  by Onicox
+Made with ❤ by Onicox

@@ -109,6 +109,9 @@ tasks.register('agentJar', Jar) {
     from sourceSets.main.output
     exclude 'META-INF/mods.toml'
     exclude 'gildedmod.mixins.json'
+    // 原生库不属于 agent jar：它由主 jar 的 NativeLoader 负责，
+    // 放进 agent jar 只会让这个 jar 白胖 230KB ✗
+    exclude 'natives/**'
     manifest {
         attributes([
                 'Premain-Class'           : 'com.gildedmod.agent.LiuAgent',
@@ -116,6 +119,14 @@ tasks.register('agentJar', Jar) {
                 'Can-Retransform-Classes' : 'true'
         ])
     }
+}
+
+// runClient / runServer 的 JVM 参数里写死了 -javaagent:build/libs/<mod>-<ver>-agent.jar，
+// 但这个 jar 是上面 agentJar 任务的产物。如果它还没被构建过，
+// JVM 会直接报 "Error opening zip file or JAR manifest missing" 并启动失败。
+// 这里把依赖补上，保证每次跑客户端都会先构建 agent jar（不用手动 gradlew build）。
+tasks.matching { it.name == 'runClient' || it.name == 'runServer' }.configureEach {
+    dependsOn 'agentJar'
 }
 
 publishing {
@@ -138,4 +149,135 @@ tasks.withType(JavaCompile).configureEach {
 mixin {
     add sourceSets.main, 'gildedmod.refmap.json'
     config 'gildedmod.mixins.json'
+}
+
+// ============================================================================
+//  C++ 原生层构建（构建期编译 → 只把 dll 打进 jar，cpp 源码不进 jar）
+//  ---------------------------------------------------------------------------
+//  以前的做法：手敲 cmake，再把 dll 手工复制到 mods/。两个问题：
+//    ① 容易忘记重编 → jar 里的 dll 和 cpp 源码对不上；
+//    ② jars 和 dll 版本漂移，测出来的行为不是当前源码。
+//
+//  现在：gradlew build 一条命令走完
+//    1) cmakeConfigureNative  配置（Ninja + UCRT64 g++）
+//    2) buildNative           编译 GildedNativeKernel.dll / GildedArmor.dll
+//    3) stageNatives          把产物收进 build/native-stage
+//    4) processResources      以 natives/windows/ 的路径打进 jar
+//
+//  这样 jar 里自带 dll，运行期由 NativeLoader 从 jar 里解压加载；
+//  src/main/cpp 整个目录【不会】被打包（resources 只收 stage 出来的 dll）。
+// ============================================================================
+def mingwBin     = 'D:/msys64/ucrt64/bin'
+def jdkHome      = System.getenv('JAVA_HOME') ?: 'D:/SDK/Java/jdk-17'
+def nativeSrcDir = file('src/main/cpp')
+def nativeBuild  = layout.buildDirectory.dir('native-cmake')
+def nativeStage  = layout.buildDirectory.dir('native-stage')
+
+tasks.register('cmakeConfigureNative', Exec) {
+    group = 'native'
+    description = '配置 C++ 原生层（Ninja + UCRT64 g++）'
+    def bdir = nativeBuild.get().asFile
+    doFirst { bdir.mkdirs() }
+    commandLine "${mingwBin}/cmake.exe",
+            '-S', nativeSrcDir.absolutePath,
+            '-B', bdir.absolutePath,
+            '-G', 'Ninja',
+            '-DCMAKE_BUILD_TYPE=Release',
+            "-DCMAKE_CXX_COMPILER=${mingwBin}/g++.exe",
+            "-DCMAKE_C_COMPILER=${mingwBin}/gcc.exe",
+            "-DCMAKE_MAKE_PROGRAM=${mingwBin}/ninja.exe",
+            "-DJAVA_HOME=${jdkHome}"
+    environment 'PATH', "${mingwBin};" + System.getenv('PATH')
+}
+
+tasks.register('buildNative', Exec) {
+    group = 'native'
+    description = '编译 GildedNativeKernel.dll / GildedArmor.dll'
+    dependsOn 'cmakeConfigureNative'
+    def bdir = nativeBuild.get().asFile
+    // 只要 cpp 目录里有文件变化就重编，不做细粒度增量（cmake 自己会判断）
+    inputs.dir(nativeSrcDir)
+    outputs.dir(nativeBuild.map { it.dir('bin') })
+    commandLine "${mingwBin}/cmake.exe", '--build', bdir.absolutePath, '-j', '4'
+    environment 'PATH', "${mingwBin};" + System.getenv('PATH')
+}
+
+tasks.register('stageNatives', Sync) {
+    group = 'native'
+    description = '收集原生层产物到 build/native-stage'
+    dependsOn 'buildNative'
+    from(nativeBuild.map { it.dir('bin') }) {
+        // 两个 dll 都进 jar：
+        //   · GildedArmor.dll        —— 运行期由 NativeLoader 解压加载（当场生效）
+        //   · GildedNativeKernel.dll  —— 它不能由 Java 加载（-agentpath 只认启动前的
+        //                               真实文件），放进来是【发行包自带的正本】：
+        //                               hook 出问题/被换掉时，从这里拖出来丢进 mods\
+        //                               就能恢复，不用再找单独的文件
+        include 'GildedArmor.dll'
+        include 'GildedNativeKernel.dll'
+    }
+    into nativeStage
+}
+
+// 把 dll 打进 jar 的 natives/windows/ 下
+tasks.named('processResources', ProcessResources).configure {
+    dependsOn 'stageNatives'
+    from(nativeStage) {
+        into 'natives/windows'
+    }
+}
+
+// ============================================================================
+//  一键部署：把 jar + agent jar + dll 复制到整合包的 mods 目录
+//  ---------------------------------------------------------------------------
+//  用法：  gradlew deployMod
+//  好处： 不用再手动 Copy-Item，也不用记两个版本目录。
+//
+//  ⚠ 默认【不】挂在 build 上 —— 构建不该有副作用（不能一 build 就往玩家目录写）。
+//     想让它跟着 build 自动跑，把下面 deployOnBuild 改成 true 即可。
+// ============================================================================
+def deployOnBuild = false
+def deployTargets = [
+        'D:/MC/versions/GS/mods',
+        'D:/MC/versions/GSL/mods'
+]
+
+tasks.register('deployMod', Copy) {
+    group = 'native'
+    description = '把 jar / agent jar / dll 复制到 GS 与 GSL 的 mods 目录'
+    dependsOn 'jar', 'agentJar', 'stageNatives'
+
+    from(tasks.named('jar'))
+    from(nativeStage) {
+        include '*.dll'
+    }
+
+    // Copy 任务只能有一个 destinationDir，两个整合包用 doLast 手动复制的思路更直接
+    into layout.buildDirectory.dir('deploy-staging')
+
+    doLast {
+        def jars = [tasks.named('jar', Jar).get().archiveFile.get().asFile,
+                    tasks.named('agentJar', Jar).get().archiveFile.get().asFile]
+        def dlls = fileTree(nativeStage.get().asFile) { include '*.dll' }.files
+
+        deployTargets.each { target ->
+            def dir = new File(target)
+            if (!dir.isDirectory() && !dir.mkdirs()) {
+                logger.warn("[deploy] 跳过（无法创建目录）: ${target}")
+                return
+            }
+            (jars + dlls.toList()).each { f ->
+                if (f == null || !f.isFile()) return
+                java.nio.file.Files.copy(
+                        f.toPath(),
+                        new File(dir, f.name).toPath(),
+                        java.nio.file.StandardCopyOption.REPLACE_EXISTING)
+                logger.lifecycle("[deploy] ${f.name} → ${target}")
+            }
+        }
+    }
+}
+
+if (deployOnBuild) {
+    tasks.named('build') { finalizedBy 'deployMod' }
 }

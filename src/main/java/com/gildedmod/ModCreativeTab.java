@@ -37,7 +37,8 @@ public class ModCreativeTab {
                     .displayItems((parameters, output) -> {
                         // 武器
                         output.accept(GildedMod.BLACKGOLD_SWORD.get());
-                        output.accept(GildedMod.BLACKGOLD_PICKAXE.get());
+                        output.accept(GildedMod.FUND_SWORD.get());
+            output.accept(GildedMod.BLACKGOLD_PICKAXE.get());
                         output.accept(GildedMod.BLACKGOLD_AXE.get());
                         // 盔甲
                         output.accept(GildedMod.BLACKGOLD_HELMET.get());
@@ -48,6 +49,12 @@ public class ModCreativeTab {
                         output.accept(GildedMod.BLACKGOLD_NUGGET.get());
                         output.accept(GildedMod.BLACKGOLD_INGOT.get());
                         output.accept(GildedMod.GOD_BLACKGOLD_UPGRADE_TEMPLATE.get());
+                        output.accept(GildedMod.STAR.get());
+            output.accept(GildedMod.UNIOXING.get());
+            output.accept(GildedMod.FINAL_UNIVERSE_GILDED_TEMPLATE.get());
+                        output.accept(GildedMod.BLACK_HOLE.get());
+                        output.accept(GildedMod.GALAXY.get());
+                        output.accept(GildedMod.HUBBLE_VOLUME.get());
                         // 压缩下界合金块
                         output.accept(GildedMod.COMPRESSED_NETHERITE_1_ITEM.get());
                         output.accept(GildedMod.COMPRESSED_NETHERITE_2_ITEM.get());
@@ -59,6 +66,8 @@ public class ModCreativeTab {
                         output.accept(GildedMod.COMPRESSED_NETHERITE_8_ITEM.get());
                         output.accept(GildedMod.COMPRESSED_NETHERITE_9_ITEM.get());
                         output.accept(GildedMod.COMPRESSED_NETHERITE_FINAL_ITEM.get());
+                        output.accept(GildedMod.BLACKGOLD_BLOCK_ITEM.get());
+                        output.accept(GildedMod.GILDED_INGOT.get());
                     })
                     .build()
     );

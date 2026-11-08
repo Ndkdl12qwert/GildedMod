@@ -1,16 +1,28 @@
 {
   "type": "minecraft:crafting_shaped",
   "pattern": [
-    "BBB",
-    "BTB",
-    "BBB"
+    "AZB",
+    "ZTZ",
+    "CZD"
   ],
   "key": {
-    "B": {
+    "Z": {
       "item": "gildedmod:blackgold_ingot"
     },
     "T": {
       "item": "minecraft:netherite_upgrade_smithing_template"
+    },
+    "A": {
+      "item": "gildedmod:star"
+    },
+    "B": {
+      "item": "gildedmod:black_hole"
+    },
+    "C": {
+      "item": "gildedmod:galaxy"
+    },
+    "D": {
+      "item": "gildedmod:hubble_volume"
     }
   },
   "result": {

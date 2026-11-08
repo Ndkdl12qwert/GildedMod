@@ -1,0 +1,22 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "UGU",
+    "GNG",
+    "UGU"
+  ],
+  "key": {
+    "G": {
+      "item": "gildedmod:blackgold_ingot"
+    },
+    "N": {
+      "item": "minecraft:nether_star"
+    },
+    "U": {
+      "item": "minecraft:netherite_upgrade_smithing_template"
+    }
+  },
+  "result": {
+    "item": "gildedmod:star"
+  }
+}

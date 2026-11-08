@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "III",
+    "III",
+    "III"
+  ],
+  "key": {
+    "I": {
+      "item": "gildedmod:blackgold_ingot"
+    }
+  },
+  "result": {
+    "item": "gildedmod:blackgold_block"
+  }
+}

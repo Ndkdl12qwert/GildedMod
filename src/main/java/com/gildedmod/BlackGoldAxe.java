@@ -106,7 +106,10 @@ public class BlackGoldAxe extends AxeItem {
         if (!world.isClientSide) {
             if (player.isShiftKeyDown()) {
                 // ✨ 潜行+右键：3x3范围挖掘
-                BlockPos center = player.blockPosition();
+                BlockPos center = pickedBlock(player);
+                if (center == null) {
+                    return InteractionResultHolder.pass(stack);
+                }
                 int count = 0;
 
                 for (int x = -1; x <= 1; x++) {
@@ -129,7 +132,10 @@ public class BlackGoldAxe extends AxeItem {
 
             } else {
                 // ✨ 普通右键：连锁砍树
-                BlockPos target = player.blockPosition();
+                BlockPos target = pickedBlock(player);
+                if (target == null) {
+                    return InteractionResultHolder.pass(stack);
+                }
                 cutTree(world, target, player);
             }
 
@@ -212,5 +218,21 @@ public class BlackGoldAxe extends AxeItem {
 
     @Override
     public boolean isFoil(ItemStack stack) { return true;
+    }
+
+    /**
+     * 取准星命中的方块。
+     * <p>之前这里用的是 {@code player.blockPosition()}（玩家脚下方块）——
+     * 于是"连锁砍树"永远从脚下开始找原木、"3x3 挖掘"永远挖脚下，
+     * 对着树右键会得到"砍掉 0 个木头"。现在改成和 {@code BlackGoldPickaxe} 一致的准星取块。
+     *
+     * @return 没有命中方块时返回 null（调用方应直接 pass）
+     */
+    @javax.annotation.Nullable
+    private static BlockPos pickedBlock(Player player) {
+        net.minecraft.world.phys.HitResult hit =
+                player.pick(5.0D, 0.0F, false);
+        return (hit instanceof net.minecraft.world.phys.BlockHitResult blockHit)
+                ? blockHit.getBlockPos() : null;
     }
 }

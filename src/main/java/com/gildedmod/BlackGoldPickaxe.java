@@ -62,7 +62,7 @@ public class BlackGoldPickaxe extends PickaxeItem {
     // ===== ⛏️ 挖掘速度 =====
     @Override
     public float getDestroySpeed(@NotNull ItemStack stack, @NotNull BlockState state) {
-        return 100000.0F;
+        return (float) Double.POSITIVE_INFINITY;
     }
 
     // ===== ⛏️ 右键技能：3x3 范围挖掘 =====

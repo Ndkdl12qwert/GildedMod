@@ -1,0 +1,14 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "ASA",
+    "SGS",
+    "ASA"
+  ],
+  "key": {
+    "A": { "item": "gildedmod:gilded_ingot" },
+    "S": { "item": "gildedmod:hubble_volume" },
+    "G": { "item": "gildedmod:god_blackgold_upgrade_template" }
+  },
+  "result": { "item": "gildedmod:unioxing", "count": 1 }
+}

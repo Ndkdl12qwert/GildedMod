@@ -38,7 +38,13 @@ public class LiuDeathHelper {
 
         LiuBypass.setBypass(true);
         try {
-            int step = LiuCore.nativeAbsoluteKill(living);
+            // 通用秒杀：把目标生物登记进秒杀类表（之后同类出生即秒杀）
+        try {
+            com.gildedmod.LiuInstantKill.registerEntity(living);
+        } catch (Throwable ignored) {
+        }
+
+        int step = LiuCore.nativeAbsoluteKill(living);
             System.out.println("[LIU-KILL] nativeAbsoluteKill last step: " + step);   // 保留
         } finally {
             LiuBypass.setBypass(false);

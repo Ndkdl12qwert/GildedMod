@@ -25,13 +25,12 @@ import net.minecraft.world.item.Rarity;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
-import net.minecraft.world.effect.MobEffectInstance;
-import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.TooltipFlag;
+import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -41,7 +40,7 @@ public class BlackGoldArmor extends ArmorItem {
     // ===== 神权盔甲材质 =====
     public static final ArmorMaterial BLACKGOLD_MATERIAL = new ArmorMaterial() {
         @Override
-        public String getName() {
+        public @NotNull String getName() {
             return "gildedmod:blackgold";
         }
 
@@ -66,12 +65,12 @@ public class BlackGoldArmor extends ArmorItem {
         }
 
         @Override
-        public SoundEvent getEquipSound() {
+        public @NotNull SoundEvent getEquipSound() {
             return SoundEvents.ARMOR_EQUIP_NETHERITE;
         }
 
         @Override
-        public Ingredient getRepairIngredient() {
+        public @NotNull Ingredient getRepairIngredient() {
             return Ingredient.EMPTY;
         }
 
@@ -105,17 +104,19 @@ public class BlackGoldArmor extends ArmorItem {
     }
 
     @Override
-    public boolean isRepairable(ItemStack stack) {
+    public boolean isRepairable(@NotNull ItemStack stack) {
         return false;
     }
 
     // ===== 全套效果：每 tick 触发 =====
     @Override
-    public void inventoryTick(ItemStack stack, Level world, net.minecraft.world.entity.Entity entity, int slot, boolean selected) {
+    public void inventoryTick(@NotNull ItemStack stack, @NotNull Level world, net.minecraft.world.entity.Entity entity, int slot, boolean selected) {
         super.inventoryTick(stack, world, entity, slot, selected);
 
         if (world.isClientSide) return;
         if (!(entity instanceof Player player)) return;
+
+        long t0 = GildedDebug.begin();
 
         int armorPieces = countArmorPieces(player);
 
@@ -136,41 +137,24 @@ public class BlackGoldArmor extends ArmorItem {
             }
         }
 
-        // ===== 全套鎏金 → 强制吸引仇恨 =====
-        if (armorPieces >= 4) {
-            double range = 64.0;
-            for (net.minecraft.world.entity.Mob mob : world.getEntitiesOfClass(
-                    net.minecraft.world.entity.Mob.class,
-                    player.getBoundingBox().inflate(range),
-                    m -> m.isAlive() && m.canAttack(player))) {
-                if (mob.getTarget() != player) {
-                    mob.setTarget(player);
-                }
-            }
-        }
+        // ✗✗ 2026-11-07 删除：吸引仇恨（每件盔甲 × 每秒 × 32 格立方体扫描）
+        //   实测在怪多的整合包里这是主要卡顿源 —— 生存模式待机都卡 ✓
+        //   需要"怪来打你"用别的低开销方式，不做全范围扫描 ✗
 
-        if (armorPieces >= 2) {
-            player.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SPEED, 40, 1, false, false, true));
-        }
+        // ✗✗ 2026-11-07 删除：维持 9 个增益效果（MOVEMENT_SPEED / ABSORPTION /
+        //   DAMAGE_BOOST / RESISTANCE / REGENERATION / NIGHT_VISION / WATER_BREATHING /
+        //   FIRE_RESISTANCE）。每次 addEffect 都会触发属性重算 + 同步包，
+        //   即使做了 10 tick 门限，生存模式待机仍然明显掉帧 ✓
+        //   → 改为【纯代码级伤害拦截】：见 LiuArmorMixin（hurt / actuallyHurt 直接 cancel）✓
 
-        if (armorPieces >= 3) {
-            player.addEffect(new MobEffectInstance(MobEffects.ABSORPTION, 40, 1, false, false, true));
-        }
-
-        if (armorPieces >= 4) {
-            player.addEffect(new MobEffectInstance(MobEffects.DAMAGE_BOOST, 40, 2, false, false, true));
-            player.addEffect(new MobEffectInstance(MobEffects.DAMAGE_RESISTANCE, 40, 1, false, false, true));
-            player.addEffect(new MobEffectInstance(MobEffects.REGENERATION, 40, 1, false, false, true));
-            player.addEffect(new MobEffectInstance(MobEffects.NIGHT_VISION, 400, 0, false, false, true));
-            player.addEffect(new MobEffectInstance(MobEffects.WATER_BREATHING, 400, 0, false, false, true));
-            player.addEffect(new MobEffectInstance(MobEffects.FIRE_RESISTANCE, 400, 0, false, false, true));
-        }
+        GildedDebug.end("armorTick", t0);
     }
+
 
     // ===== 全屏神谕 =====
     @Override
     @OnlyIn(Dist.CLIENT)
-    public void appendHoverText(ItemStack stack, @Nullable Level world, List<Component> tooltip, TooltipFlag flag) {
+    public void appendHoverText(@NotNull ItemStack stack, @Nullable Level world, List<Component> tooltip, TooltipFlag flag) {
         tooltip.clear();
 
         String color = switch (this.getType()) {
@@ -182,17 +166,17 @@ public class BlackGoldArmor extends ArmorItem {
 
         tooltip.add(Component.literal(color + "§m§k" + color + "§m§k" + color + "§m§k"));
         tooltip.add(Component.literal(""));
-        tooltip.add(Component.literal("       " + color + "§lG O D S W O R D"));
-        tooltip.add(Component.literal(" §k afh§r §7§l「神 权 · " + getPieceName() + "」§k akjfh§r"));
+        tooltip.add(Component.literal("       " + color + "§lG I L E D E A R M O R"));
+        tooltip.add(Component.literal(" 鎏 金 · " + getPieceName() + "汇集全寰宇之力"));
         tooltip.add(Component.literal(""));
-        tooltip.add(Component.literal("  " + color + "✦ §l神权·永恒    §7»  §k永不磨损"));
+        tooltip.add(Component.literal("  " + color + " "));
         tooltip.add(Component.literal(""));
         tooltip.add(Component.literal("  §7套装效果:"));
         tooltip.add(Component.literal("    §7• §b2件: 速度提升"));
         tooltip.add(Component.literal("    §7• §d3件: 伤害吸收"));
-        tooltip.add(Component.literal("    §7• §6全套: 全神权加持 + 无敌"));
+        tooltip.add(Component.literal("    全套，你就是神明"));
         tooltip.add(Component.literal(""));
-        tooltip.add(Component.literal("  §7§o「四神加身，即为神明」"));
+        tooltip.add(Component.literal("  上帝的盔甲-GildedArmor"));
         tooltip.add(Component.literal(""));
         tooltip.add(Component.literal(color + "§m§k" + color + "§m§k" + color + "§m§k"));
     }

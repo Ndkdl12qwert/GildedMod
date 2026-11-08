@@ -1,0 +1,22 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "BSB",
+    "SNS",
+    "BSB"
+  ],
+  "key": {
+    "B": {
+      "item": "gildedmod:black_hole"
+    },
+    "N": {
+      "item": "gildedmod:galaxy"
+    },
+    "S": {
+      "item": "gildedmod:star"
+    }
+  },
+  "result": {
+    "item": "gildedmod:hubble_volume"
+  }
+}

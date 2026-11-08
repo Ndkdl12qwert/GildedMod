@@ -1,6 +1,7 @@
 {
   "itemGroup.gildedmod.godsword_tab": "§k infinity§r §6§lGODSWORD · 神权 §k infinite§r",
   "item.gildedmod.blackgold_sword": "§k infinite§r §8「§k|§6§l GODSWORD · Fallen §8」§k infinity§r",
+  "item.gildedmod.fund_sword": "§k infinite§r §8「§k|§6§l FUNDSWORD · 基金之剑 §8」§k infinity§r",
   "item.gildedmod.blackgold_pickaxe": "§8「§k|§2§l GODPICKAXE · Mountainbreaker §8」",
   "item.gildedmod.blackgold_axe": "§k infinity§r GODAXE · Splitting all things §k infinite§r",
   "item.gildedmod.blackgold_helmet": "§k infinite§r §8「§k|§b§l GODHELMET · Mind of God §8」§k infinite§r",
@@ -10,6 +11,12 @@
   "item.gildedmod.blackgold_nugget": "黑金粒",
   "item.gildedmod.blackgold_ingot": "黑金锭",
   "item.gildedmod.god_blackgold_upgrade_template": "黑金升级模板",
+  "item.gildedmod.final_universe_gilded_template": "终极宇宙鎏金升级模板",
+  "item.gildedmod.star": "恒星",
+  "item.gildedmod.unioxing": "宇宙奥星",
+  "item.gildedmod.black_hole": "黑洞",
+  "item.gildedmod.galaxy": "星系",
+  "item.gildedmod.hubble_volume": "可观测宇宙",
   "creativetab.gildedmod": "§6§lGODSWORD · Divine Authority",
   "block.gildedmod.compressed_netherite_1": "一重压缩下界合金块",
   "block.gildedmod.compressed_netherite_2": "二重压缩下界合金块",
@@ -20,5 +27,7 @@
   "block.gildedmod.compressed_netherite_7": "七重压缩下界合金块",
   "block.gildedmod.compressed_netherite_8": "八重压缩下界合金块",
   "block.gildedmod.compressed_netherite_9": "九重压缩下界合金块",
-  "block.gildedmod.compressed_netherite_final": "极·压缩下界合金块"
+  "block.gildedmod.compressed_netherite_final": "极·压缩下界合金块",
+  "block.gildedmod.blackgold_block": "黑金块",
+  "item.gildedmod.gilded_ingot": "鎏金之锭"
 }

@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    {
+      "item": "gildedmod:blackgold_block"
+    }
+  ],
+  "result": {
+    "item": "gildedmod:blackgold_ingot",
+    "count": 9
+  }
+}

@@ -7,7 +7,7 @@
     "item": "minecraft:netherite_axe"
   },
   "addition": {
-    "item": "gildedmod:blackgold_ingot"
+    "item": "gildedmod:gilded_ingot"
   },
   "result": {
     "item": "gildedmod:blackgold_axe"

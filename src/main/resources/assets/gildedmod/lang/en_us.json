@@ -1,6 +1,7 @@
-﻿{
+{
   "itemGroup.gildedmod.godsword_tab": "GODSWORD · Divine Authority",
   "item.gildedmod.blackgold_sword": "GODSWORD · Fallen",
+  "item.gildedmod.fund_sword": "GODSWORD · Fund",
   "item.gildedmod.blackgold_pickaxe": "GODPICKAXE · Mountainbreaker",
   "item.gildedmod.blackgold_axe": "GODAXE · Splitting all things",
   "item.gildedmod.blackgold_helmet": "GODHELMET · Mind of God",
@@ -9,7 +10,13 @@
   "item.gildedmod.blackgold_boots": "GODBOOTS · Stride of God",
   "item.gildedmod.blackgold_nugget": "Blackgold Nugget",
   "item.gildedmod.blackgold_ingot": "Blackgold Ingot",
+  "item.gildedmod.star": "Star",
+  "item.gildedmod.unioxing": "Unioxing",
+  "item.gildedmod.black_hole": "BlackHole",
+  "item.gildedmod.hubble_volume": "HubbleVolume",
+  "item.gildedmod.galaxy": "Galaxy",
   "item.gildedmod.god_blackgold_upgrade_template": "God Blackgold Upgrade Template",
+  "item.gildedmod.final_universe_gilded_template": "Final Universe Gilded Upgrade Template",
   "creativetab.gildedmod": "GODSWORD · Divine Authority",
 
   "block.gildedmod.compressed_netherite_1": "Compressed Netherite Block I",
@@ -21,5 +28,7 @@
   "block.gildedmod.compressed_netherite_7": "Compressed Netherite Block VII",
   "block.gildedmod.compressed_netherite_8": "Compressed Netherite Block VIII",
   "block.gildedmod.compressed_netherite_9": "Compressed Netherite Block IX",
-  "block.gildedmod.compressed_netherite_final": "Ultimate Compressed Netherite Block"
+  "block.gildedmod.compressed_netherite_final": "Ultimate Compressed Netherite Block",
+  "block.gildedmod.blackgold_block": "Block of Black Gold",
+  "item.gildedmod.gilded_ingot": "Gilded Ingot"
 }

@@ -35,25 +35,14 @@ public class LiuLivingEntityVisitor extends ClassVisitor {
         MethodVisitor mv = super.visitMethod(access, name, descriptor, signature, exceptions);
 
         // ===== getHealth()F =====
-        if ((name.equals("getHealth") || name.equals("m_21223_"))
+        // ⚠ 绝对不能在这里插分支！实测代价：服务端 tick 从 12ms 涨到 63~88ms。
+        // 原因：getHealth() 原本是极小的 getter，JIT 会把它内联到所有调用点；
+        // 一旦方法体里多了分支，就超过内联阈值 → 全部退化成虚调用，
+        // 连带 isDeadOrDying / AI 目标选择 / 生命值同步 等热点一起变慢。
+        // "被抹除的实体显示 0 血"只是视觉糖，不值得用 60ms/tick 去换。
+        if (false && (name.equals("getHealth") || name.equals("m_21223_"))
                 && descriptor.equals("()F")) {
-            System.out.println("[LIU-AGENT] hooking getHealth (name=" + name + ")");
-            return new AdviceAdapter(Opcodes.ASM9, mv, access, name, descriptor) {
-                @Override
-                protected void onMethodEnter() {
-                    mv.visitVarInsn(ALOAD, 0);
-                    mv.visitMethodInsn(INVOKESTATIC,
-                            "com/gildedmod/agent/LiuAgentHook",
-                            "isDoomed",
-                            "(Ljava/lang/Object;)Z",
-                            false);
-                    Label normal = new Label();
-                    mv.visitJumpInsn(IFEQ, normal);
-                    mv.visitInsn(FCONST_0);
-                    mv.visitInsn(FRETURN);
-                    mv.visitLabel(normal);
-                }
-            };
+            return mv;
         }
 
         // ===== hurt(DamageSource;F)Z =====
@@ -74,6 +63,32 @@ public class LiuLivingEntityVisitor extends ClassVisitor {
                     mv.visitJumpInsn(IFEQ, normal);
                     mv.visitInsn(ICONST_0);
                     mv.visitInsn(IRETURN);
+                    mv.visitLabel(normal);
+                }
+            };
+        }
+
+        // ===== tick()V —— 时停的挂载点 =====
+        //  为什么走 agent 而不是 Mixin：
+        //    TimeStopMixin 实测挂不上（refmap 正确、无报错、但注入方法从不执行 ✗）。
+        //    而 agent 对同一个 LivingEntity 的 setHealth/hurt/die/remove 一直是成功的 ✓。
+        //  tick 是大方法（不会被 JIT 内联），在开头插一个分支是安全的 ✓
+        if ((name.equals("tick") || name.equals("m_8119_"))
+                && descriptor.equals("()V")) {
+            System.out.println("[LIU-AGENT] hooking LivingEntity.tick 时停 (name=" + name + ")");
+            return new AdviceAdapter(Opcodes.ASM9, mv, access, name, descriptor) {
+                @Override
+                protected void onMethodEnter() {
+                    // if (LiuArmorHook.shouldFreezeTick(this)) return;
+                    mv.visitVarInsn(ALOAD, 0);
+                    mv.visitMethodInsn(INVOKESTATIC,
+                            "com/gildedmod/agent/LiuArmorHook",
+                            "shouldFreezeTick",
+                            "(Ljava/lang/Object;)Z",
+                            false);
+                    Label normal = new Label();
+                    mv.visitJumpInsn(IFEQ, normal);
+                    mv.visitInsn(RETURN);
                     mv.visitLabel(normal);
                 }
             };
